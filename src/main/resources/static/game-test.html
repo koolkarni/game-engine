@@ -2,17 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Game API Tester</title>
+  <title>🎮 Game API Tester</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6 font-sans">
 
-  <div class="max-w-xl mx-auto bg-white shadow-md rounded p-6">
-    <h1 class="text-2xl font-bold mb-4 text-center">🎮 Game API Tester</h1>
+<div class="flex flex-col lg:flex-row gap-6">
 
-    <div class="mb-6">
+  <!-- LEFT PANEL -->
+  <div class="max-w-xl w-full bg-white shadow-md rounded p-6 space-y-6">
+    <h1 class="text-2xl font-bold text-center mb-4">🎮 Game API Tester</h1>
+
+    <!-- Create Game -->
+    <div>
       <h2 class="text-lg font-semibold mb-2">Create Game</h2>
-      <input id="createPlayerId" type="number" placeholder="Player ID"
+      <input id="createPlayerId" type="number" placeholder="Player ID 1"
              class="w-full border border-gray-300 p-2 rounded mb-2" />
       <button onclick="createGame()"
               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full">
@@ -21,11 +25,12 @@
       <p id="createResult" class="text-sm text-green-700 mt-2"></p>
     </div>
 
+    <!-- Join Game -->
     <div>
       <h2 class="text-lg font-semibold mb-2">Join Game</h2>
       <input id="joinGameId" type="number" placeholder="Game ID"
              class="w-full border border-gray-300 p-2 rounded mb-2" />
-      <input id="joinPlayerId" type="number" placeholder="Player ID"
+      <input id="joinPlayerId" type="number" placeholder="Player ID 2"
              class="w-full border border-gray-300 p-2 rounded mb-2" />
       <button onclick="joinGame()"
               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full">
@@ -33,28 +38,169 @@
       </button>
       <p id="joinResult" class="text-sm text-green-700 mt-2"></p>
     </div>
+
+    <!-- Make Move -->
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Make Move</h2>
+      <input id="moveGameId" type="number" placeholder="Game ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input id="movePlayerId" type="number" placeholder="Player ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input id="moveRow" type="number" placeholder="Row (0-2)"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input id="moveCol" type="number" placeholder="Col (0-2)"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <button onclick="makeMove()"
+              class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded w-full">
+        Make Move
+      </button>
+      <p id="moveResult" class="text-sm text-green-700 mt-2"></p>
+    </div>
+
+    <!-- View Players Input -->
+    <div>
+      <h2 class="text-lg font-semibold mb-2">View Joined Players</h2>
+      <input id="viewGameId" type="number" placeholder="Game ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <button onclick="viewGamePlayers()"
+              class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded w-full">
+        View Players
+      </button>
+    </div>
   </div>
 
-  <script>
-    async function createGame() {
-      const playerId = document.getElementById("createPlayerId").value;
-      const res = await fetch(`/api/games/create?playerId=${playerId}`, {
-        method: "POST"
-      });
-      const game = await res.json();
-      document.getElementById("createResult").innerText = `Game created with ID: ${game.id}`;
+  <!-- RIGHT PANEL: PLAYER LIST BOX -->
+  <div class="w-full lg:w-1/3">
+    <h2 class="text-lg font-bold mb-2">Players Joined</h2>
+    <div id="playerListBox"
+         class="border border-black rounded p-4 bg-white shadow whitespace-pre-line min-h-[120px]">
+      Game: -
+      Player 1: Not joined
+      Player 2: Not joined
+    </div>
+    <h2 class="text-lg font-bold mt-6 mb-2">📌 Grid Reference</h2>
+    <div class="grid grid-cols-3 gap-2 w-48 text-center text-sm font-mono">
+      <div class="border p-2 bg-gray-100">0,0</div>
+      <div class="border p-2 bg-gray-100">0,1</div>
+      <div class="border p-2 bg-gray-100">0,2</div>
+      <div class="border p-2 bg-gray-100">1,0</div>
+      <div class="border p-2 bg-gray-100">1,1</div>
+      <div class="border p-2 bg-gray-100">1,2</div>
+      <div class="border p-2 bg-gray-100">2,0</div>
+      <div class="border p-2 bg-gray-100">2,1</div>
+      <div class="border p-2 bg-gray-100">2,2</div>
+    </div>
+    <h2 class="text-lg font-bold mt-6 mb-2">🎯 Live Game Board</h2>
+    <div id="liveBoard" class="grid grid-cols-3 gap-px text-center text-xs font-mono">
+      <!-- Grid will be filled by JS -->
+    </div>
+  </div>
+</div>
+<!-- JavaScript Section -->
+<script>
+  async function createGame() {
+    const playerId = document.getElementById("createPlayerId").value;
+    const res = await fetch(`/api/games/create?playerId=${playerId}`, {
+      method: "POST"
+    });
+
+    const game = await res.json();
+    document.getElementById("createResult").innerText = `Game created with ID: ${game.id}`;
+
+    // Fill other fields
+    document.getElementById("viewGameId").value = game.id;
+    document.getElementById("joinGameId").value = game.id;
+    document.getElementById("moveGameId").value = game.id;
+
+    // ✅ Correct: pass game.id explicitly
+    viewGamePlayers(game.id);
+  }
+
+ async function joinGame() {
+  const gameId = document.getElementById("joinGameId").value;
+  const playerId = document.getElementById("joinPlayerId").value;
+  const res = await fetch(`/api/games/${gameId}/join?playerId=${playerId}`, {
+    method: "POST"
+  });
+  const game = await res.json();
+  document.getElementById("joinResult").innerText = `Player ${playerId} joined Game ID: ${game.id}`;
+
+  document.getElementById("viewGameId").value = game.id;
+  document.getElementById("moveGameId").value = game.id;
+
+  viewGamePlayers(game.id); // ✅ fixed
+}
+
+    async function makeMove() {
+    const gameId = document.getElementById("moveGameId").value;
+    const playerId = document.getElementById("movePlayerId").value;
+    const row = document.getElementById("moveRow").value;
+    const col = document.getElementById("moveCol").value;
+    const resultEl = document.getElementById("moveResult");
+
+    const res = await fetch(`/api/games/${gameId}/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, row, col })
+    });
+
+    if (!res.ok) {
+      try {
+        const errorBody = await res.json();
+        resultEl.innerText = errorBody.message || "Move failed.";
+      } catch {
+        const fallback = await res.text();
+        resultEl.innerText = fallback || "Move failed.";
+      }
+      resultEl.className = "text-red-600 text-sm mt-2 font-medium";
+      return;
     }
 
-    async function joinGame() {
-      const gameId = document.getElementById("joinGameId").value;
-      const playerId = document.getElementById("joinPlayerId").value;
-      const res = await fetch(`/api/games/${gameId}/join?playerId=${playerId}`, {
-        method: "POST"
-      });
-      const game = await res.json();
-      document.getElementById("joinResult").innerText = `Player ${playerId} joined Game ID: ${game.id}`;
-    }
-  </script>
+    const game = await res.json();
+    renderBoard(game.board);
+    resultEl.innerText = `Move OK. Status: ${game.status}, Winner: ${game.winnerId || "TBD"}`;
+    resultEl.className = "text-green-700 text-sm mt-2 font-medium";
+    viewGamePlayers();
+  }
 
+   async function viewGamePlayers(gameId = null) {
+    if (!gameId) {
+      gameId = document.getElementById("viewGameId").value;
+    }
+
+    const res = await fetch(`/api/games/${gameId}`);
+    const box = document.getElementById("playerListBox");
+
+    if (!res.ok) {
+      box.innerText = `Game ${gameId} not found.`;
+      return;
+    }
+
+    const { game, board } = await res.json();
+    const p1 = game.player1Id ? `Player 1: ${game.player1Id}` : "Player 1: Not joined";
+    const p2 = game.player2Id ? `Player 2: ${game.player2Id}` : "Player 2: Not joined";
+
+    box.innerText = `Game: ${game.id}\n${p1}\n${p2}`;
+    renderBoard(board); // if available
+  }
+
+  function renderBoard(grid) {
+    const boardEl = document.getElementById("liveBoard");
+    boardEl.innerHTML = ''; // Clear previous
+
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const val = grid[row][col] || '-';
+        const cell = document.createElement("div");
+        cell.textContent = val;
+        cell.className = "border bg-white flex items-center justify-center";
+        cell.style.width = "50px";
+        cell.style.height = "50px";
+        cell.style.fontSize = "8px"; // Fit text
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+</script>
 </body>
 </html>
