@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game API Tester</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+
+  <div class="max-w-xl mx-auto bg-white shadow-md rounded p-6">
+    <h1 class="text-2xl font-bold mb-4 text-center">🎮 Game API Tester</h1>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">Create Game</h2>
+      <input id="createPlayerId" type="number" placeholder="Player ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <button onclick="createGame()"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full">
+        Create Game
+      </button>
+      <p id="createResult" class="text-sm text-green-700 mt-2"></p>
+    </div>
+
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Join Game</h2>
+      <input id="joinGameId" type="number" placeholder="Game ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input id="joinPlayerId" type="number" placeholder="Player ID"
+             class="w-full border border-gray-300 p-2 rounded mb-2" />
+      <button onclick="joinGame()"
+              class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded w-full">
+        Join Game
+      </button>
+      <p id="joinResult" class="text-sm text-green-700 mt-2"></p>
+    </div>
+  </div>
+
+  <script>
+    async function createGame() {
+      const playerId = document.getElementById("createPlayerId").value;
+      const res = await fetch(`/api/games/create?playerId=${playerId}`, {
+        method: "POST"
+      });
+      const game = await res.json();
+      document.getElementById("createResult").innerText = `Game created with ID: ${game.id}`;
+    }
+
+    async function joinGame() {
+      const gameId = document.getElementById("joinGameId").value;
+      const playerId = document.getElementById("joinPlayerId").value;
+      const res = await fetch(`/api/games/${gameId}/join?playerId=${playerId}`, {
+        method: "POST"
+      });
+      const game = await res.json();
+      document.getElementById("joinResult").innerText = `Player ${playerId} joined Game ID: ${game.id}`;
+    }
+  </script>
+
+</body>
+</html>
