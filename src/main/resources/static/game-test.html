@@ -156,8 +156,8 @@
       return;
     }
 
-    const game = await res.json();
-    renderBoard(game.board);
+    const { game, board } = await res.json();
+    renderBoard(board);
     resultEl.innerText = `Move OK. Status: ${game.status}, Winner: ${game.winnerId || "TBD"}`;
     resultEl.className = "text-green-700 text-sm mt-2 font-medium";
     viewGamePlayers();
