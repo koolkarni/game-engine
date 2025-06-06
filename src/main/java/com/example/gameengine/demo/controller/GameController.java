@@ -3,10 +3,14 @@ package com.example.gameengine.demo.controller;
 import com.example.gameengine.demo.model.Game;
 import com.example.gameengine.demo.model.GameViewDTO;
 import com.example.gameengine.demo.model.Move;
+import com.example.gameengine.demo.model.PlayerStats;
 import com.example.gameengine.demo.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/games")
@@ -42,5 +46,8 @@ public class GameController {
         int[][] board = gameService.getBoard(gameId);
         return ResponseEntity.ok(new GameViewDTO(game, board));
     }
-
+    @GetMapping("/leaderboard")
+    public ResponseEntity<Map<String, List<PlayerStats>>> getLeaderboard() {
+        return ResponseEntity.ok(gameService.getLeaderboard());
+    }
 }
